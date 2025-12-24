@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
+// Пропсы для компонента аватара
 interface AvatarProps {
-  uri?: string | null;
-  size?: number;
-  onPress?: () => void;
-  editable?: boolean;
+  uri?: string | null; // URI изображения
+  size?: number; // Размер аватара
+  onPress?: () => void; // Обработчик нажатия
+  editable?: boolean; // Возможность редактирования
 }
 
 const Avatar: React.FC<AvatarProps> = ({ 
@@ -14,21 +15,24 @@ const Avatar: React.FC<AvatarProps> = ({
   onPress, 
   editable = false 
 }) => {
-  const defaultAvatar = require('../assets/default-avatar.png'); // Создайте этот файл
+  // Стандартный аватар (нужно создать файл assets/default-avatar.png)
+  const defaultAvatar = require('../assets/default-avatar.png');
 
   const avatarStyle = {
     width: size,
     height: size,
-    borderRadius: size / 2,
+    borderRadius: size / 2, // Делаем круг
   };
 
   const content = (
     <View style={[styles.container, avatarStyle]}>
+      {/* Изображение аватара */}
       <Image
         source={uri ? { uri } : defaultAvatar}
         style={[styles.avatar, avatarStyle]}
         resizeMode="cover"
       />
+      {/* Иконка редактирования (если включено) */}
       {editable && (
         <View style={styles.editOverlay}>
           <View style={styles.editIcon}>
@@ -40,6 +44,7 @@ const Avatar: React.FC<AvatarProps> = ({
     </View>
   );
 
+  // Если есть обработчик нажатия - оборачиваем в TouchableOpacity
   if (onPress) {
     return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
@@ -53,9 +58,9 @@ const Avatar: React.FC<AvatarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#ecf0f1', // Цвет фона по умолчанию
     borderWidth: 2,
-    borderColor: '#3498db',
+    borderColor: '#3498db', // Синяя рамка
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -70,7 +75,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Полупрозрачный оверлей
     justifyContent: 'center',
     alignItems: 'center',
   },

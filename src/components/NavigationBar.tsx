@@ -3,11 +3,12 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { ScreenType } from '../types/game.types';
 import { COLORS } from '../game/Constants';
 
+// Пропсы для навигационной панели
 interface NavigationBarProps {
-  activeScreen: ScreenType;
-  onNavigate: (screen: ScreenType) => void;
-  onRestart?: () => void; // Добавляем пропс для перезапуска
-  isGamePlaying?: boolean; // Показываем, идет ли игра
+  activeScreen: ScreenType; // Активный экран
+  onNavigate: (screen: ScreenType) => void; // Навигация
+  onRestart?: () => void; // Перезапуск игры
+  isGamePlaying?: boolean; // Флаг активной игры
 }
 
 const NavigationBar: React.FC<NavigationBarProps> = ({
@@ -16,11 +17,11 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
   onRestart,
   isGamePlaying = false,
 }) => {
+  // Проверка активности экрана
   const isActive = (screen: ScreenType) => activeScreen === screen;
 
   return (
     <View style={styles.container}>
-      {/* Навигационные иконки */}
       <View style={styles.navContainer}>
         {/* Кнопка Главная */}
         <TouchableOpacity
@@ -37,7 +38,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
         {/* Динамическая кнопка: Играть/Заново */}
         {activeScreen === 'game' && isGamePlaying && onRestart ? (
-          // Если мы в игре и игра идет - показываем кнопку "Заново"
+          // Если в игре и игра идет - показываем кнопку "Заново"
           <TouchableOpacity
             style={styles.actionButton}
             onPress={onRestart}
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   navItemActive: {
-    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+    backgroundColor: 'rgba(52, 152, 219, 0.1)', // Подсветка активного элемента
   },
   navIcon: {
     fontSize: 24,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   },
   navIconActive: {
     opacity: 1,
-    transform: [{ scale: 1.1 }],
+    transform: [{ scale: 1.1 }], // Увеличение активной иконки
   },
   navLabel: {
     fontSize: 12,
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 15,
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    backgroundColor: 'rgba(231, 76, 60, 0.1)', // Красный фон для кнопки "Заново"
     minWidth: 80,
   },
   actionButtonIcon: {

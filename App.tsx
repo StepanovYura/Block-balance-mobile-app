@@ -8,9 +8,11 @@ import { GameLogic } from './src/game/GameLogic';
 import { Storage } from './src/utils/Storage';
 import { GameState, Settings, ScreenType } from './src/types/game.types';
 
+// Создаем экземпляр игровой логики
 const gameLogic = new GameLogic();
 
 const App = () => {
+  // Состояние игры
   const [gameState, setGameState] = useState<GameState>(gameLogic.getState());
   const [highScore, setHighScore] = useState(0);
   const [activeScreen, setActiveScreen] = useState<ScreenType>('main');
@@ -20,14 +22,16 @@ const App = () => {
     vibrationEnabled: true,
   });
   
+  // Референс для игрового цикла
   const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Загрузка рекорда и настроек при старте
+  // Загрузка рекорда и настроек при старте приложения
   useEffect(() => {
     loadHighScore();
     loadSettings();
   }, []);
 
+  // Загрузка рекорда из хранилища
   const loadHighScore = async () => {
     const savedScore = await Storage.getHighScore();
     setHighScore(savedScore);
@@ -37,6 +41,7 @@ const App = () => {
     }));
   };
 
+  // Загрузка настроек из хранилища
   const loadSettings = async () => {
     try {
       const savedSettings = await Storage.getSettings();
@@ -48,6 +53,7 @@ const App = () => {
     }
   };
 
+  // Сохранение настроек
   const saveSettings = async (newSettings: Settings) => {
     setSettings(newSettings);
     try {
@@ -57,6 +63,7 @@ const App = () => {
     }
   };
 
+  // Сохранение нового рекорда
   const saveHighScore = async (score: number) => {
     if (score > highScore) {
       setHighScore(score);
@@ -68,21 +75,23 @@ const App = () => {
     }
   };
 
-  // Игровой цикл
+  // Запуск игрового цикла
   const startGameLoop = () => {
     if (gameLoopRef.current) {
       clearInterval(gameLoopRef.current);
       gameLoopRef.current = null;
     }
 
+    // Устанавливаем интервал для обновления положения блока
     gameLoopRef.current = setInterval(() => {
       if (gameState.isPlaying && !gameState.isGameOver) {
         const newState = gameLogic.updateBlockPosition();
         setGameState(newState);
       }
-    }, 16);
+    }, 16); // ~60 FPS
   };
 
+  // Начало новой игры
   const handleStartGame = () => {
     const newState = gameLogic.startGame();
     setGameState(newState);
@@ -90,28 +99,32 @@ const App = () => {
     startGameLoop(); // Запускаем игровой цикл
   };
 
+  // Установка блока на башню
   const handlePlaceBlock = () => {
     if (!gameState.isPlaying || gameState.isGameOver) return;
 
     const newState = gameLogic.placeBlock();
     setGameState(newState);
 
+    // Сохраняем рекорд если побили
     if (newState.score > highScore) {
       saveHighScore(newState.score);
     }
 
-    // Виброотклик при установке блока
+    // Виброотклик при установке блока (если включен)
     if (settings.vibrationEnabled) {
-      // Здесь можно добавить вибрацию
+      // Реализация вибрации будет добавлена позже
       // Vibration.vibrate(newState.currentBlock?.perfectHit ? 100 : 50);
     }
 
+    // Останавливаем игровой цикл при проигрыше
     if (newState.isGameOver && gameLoopRef.current) {
       clearInterval(gameLoopRef.current);
       gameLoopRef.current = null;
     }
   };
 
+  // Перезапуск игры
   const handleRestart = () => {
     if (gameLoopRef.current) {
       clearInterval(gameLoopRef.current);
@@ -122,6 +135,7 @@ const App = () => {
     startGameLoop(); // Запускаем игровой цикл заново
   };
 
+  // Возврат в главное меню
   const handleBackToMenu = () => {
     if (gameLoopRef.current) {
       clearInterval(gameLoopRef.current);
@@ -132,15 +146,16 @@ const App = () => {
     setActiveScreen('main');
   };
 
+  // Навигация между экранами
   const handleNavigate = (screen: ScreenType) => {
     if (screen === 'game' && !gameState.isPlaying) {
-      handleStartGame();
+      handleStartGame(); // Автоматически начинаем игру
     } else {
       setActiveScreen(screen);
     }
   };
 
-  // Очистка при размонтировании
+  // Очистка интервалов при размонтировании компонента
   useEffect(() => {
     return () => {
       if (gameLoopRef.current) {
@@ -149,7 +164,7 @@ const App = () => {
     };
   }, []);
 
-  // Игровой цикл с useEffect
+  // Альтернативная реализация игрового цикла через useEffect
   useEffect(() => {
     if (gameState.isPlaying && !gameState.isGameOver && gameState.currentBlock) {
       const updateInterval = setInterval(() => {
@@ -205,12 +220,12 @@ const App = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#87CEEB" />
       
-      {/* Основной контент */}
+      {/* Основной контент приложения */}
       <SafeAreaView style={styles.content}>
         {renderScreen()}
       </SafeAreaView>
 
-      {/* Навигационная панель с динамической кнопкой */}
+      {/* Нижняя навигационная панель */}
       <NavigationBar
         activeScreen={activeScreen}
         onNavigate={handleNavigate}

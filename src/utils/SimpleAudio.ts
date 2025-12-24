@@ -1,6 +1,6 @@
 import { Platform, Vibration } from 'react-native';
 
-// Простой менеджер звуков через вибрацию
+// Простой менеджер звуков (использует вибрацию как альтернативу звукам)
 export class SimpleAudio {
   private enabled: boolean = true;
 
@@ -8,27 +8,30 @@ export class SimpleAudio {
     this.enabled = true;
   }
 
+  // Включение/выключение звуков
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
   }
 
+  // Воспроизведение приветственного звука
   playWelcome() {
     if (!this.enabled) return;
 
     console.log('🎵 Playing welcome sound');
     
-    // Для всех платформ используем вибрацию
+    // Используем вибрацию для всех платформ
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      // Приветственная вибрация: короткая-длинная-короткая
+      // Паттерн вибрации: короткая-длинная-короткая
       Vibration.vibrate([0, 100, 200, 100]);
     }
     
-    // Для веба просто логируем
+    // Для веб-версии только логируем
     if (Platform.OS === 'web') {
       console.log('Welcome sound would play here');
     }
   }
 
+  // Воспроизведение звука клика
   playClick() {
     if (!this.enabled) return;
     
@@ -39,43 +42,43 @@ export class SimpleAudio {
       Vibration.vibrate(50);
     }
     
-    // Для веба логируем
     if (Platform.OS === 'web') {
       console.log('Click sound would play here');
     }
   }
 
+  // Воспроизведение звука успеха
   playSuccess() {
     if (!this.enabled) return;
     
     console.log('✅ Playing success sound');
     
-    // Успешная вибрация (паттерн: короткая-пауза-короткая-пауза-короткая)
+    // Паттерн вибрации для успеха
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       Vibration.vibrate([0, 100, 50, 100, 50, 100]);
     }
     
-    // Для веба логируем
     if (Platform.OS === 'web') {
       console.log('Success sound would play here');
     }
   }
 
+  // Воспроизведение звука неудачи
   playFail() {
     if (!this.enabled) return;
     
     console.log('❌ Playing fail sound');
     
-    // Вибрация ошибки (длинная с перерывом)
+    // Паттерн вибрации для ошибки
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       Vibration.vibrate([0, 300, 100, 300]);
     }
     
-    // Для веба логируем
     if (Platform.OS === 'web') {
       console.log('Fail sound would play here');
     }
   }
 }
 
+// Экспортируем готовый экземпляр
 export default new SimpleAudio();

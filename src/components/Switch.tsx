@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
+// Пропсы для компонента Switch
 interface SwitchProps {
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  label: string;
-  description?: string;
+  value: boolean; // Текущее значение
+  onValueChange: (value: boolean) => void; // Обработчик изменения
+  label: string; // Основной текст
+  description?: string; // Описание (опционально)
 }
 
+// Кастомный компонент переключателя
 const Switch: React.FC<SwitchProps> = ({ value, onValueChange, label, description }) => {
   return (
     <View style={styles.container}>
@@ -16,6 +18,7 @@ const Switch: React.FC<SwitchProps> = ({ value, onValueChange, label, descriptio
         {description && <Text style={styles.description}>{description}</Text>}
       </View>
       
+      {/* Сам переключатель */}
       <TouchableOpacity
         style={[styles.switch, value ? styles.switchOn : styles.switchOff]}
         onPress={() => onValueChange(!value)}
@@ -64,10 +67,10 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   switchOn: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: '#2ecc71', // Зеленый для включенного состояния
   },
   switchOff: {
-    backgroundColor: '#bdc3c7',
+    backgroundColor: '#bdc3c7', // Серый для выключенного состояния
   },
   thumb: {
     width: 24,
@@ -81,10 +84,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   thumbOn: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-end', // Сдвиг вправо при включении
   },
   thumbOff: {
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start', // Сдвиг влево при выключении
   },
 });
 

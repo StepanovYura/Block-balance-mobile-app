@@ -2,12 +2,14 @@ import React from 'react';
 import {View, StyleSheet} from 'react-native';
 import {Block as BlockType} from '../types/game.types';
 
+// Пропсы для компонента блока
 interface BlockProps {
-  block: BlockType;
-  isCurrent?: boolean;
+  block: BlockType; // Данные блока
+  isCurrent?: boolean; // Флаг текущего движущегося блока
 }
 
 const Block: React.FC<BlockProps> = ({block, isCurrent = false}) => {
+  // Определяем цвет рамки в зависимости от типа попадания
   const borderColor = block.perfectHit ? '#2ecc71' : 'transparent';
   const borderWidth = block.perfectHit ? 4 : 0;
 
@@ -23,10 +25,13 @@ const Block: React.FC<BlockProps> = ({block, isCurrent = false}) => {
           top: block.y,
           borderColor,
           borderWidth,
-          opacity: isCurrent ? 0.9 : 1,
+          opacity: isCurrent ? 0.9 : 1, // Немного прозрачный текущий блок
         },
       ]}>
+      {/* Эффект свечения для текущего блока */}
       {isCurrent && <View style={styles.glowEffect} />}
+      
+      {/* Бейдж для идеального попадания */}
       {block.perfectHit && (
         <View style={styles.perfectBadge}>
           <View style={styles.perfectInner} />
@@ -50,7 +55,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.5)', // Свечение белым цветом
   },
   perfectBadge: {
     position: 'absolute',
@@ -59,7 +64,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#2ecc71',
+    backgroundColor: '#2ecc71', // Зеленый цвет для идеального попадания
     justifyContent: 'center',
     alignItems: 'center',
   },

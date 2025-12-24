@@ -1,15 +1,17 @@
 import {Block, GameState} from '../types/game.types';
 import {GAME_CONFIG, COLORS} from './Constants';
 
+// Основной класс игровой логики
 export class GameLogic {
   private state: GameState;
   private config = GAME_CONFIG;
 
   constructor() {
+    // Инициализация начального состояния игры
     this.state = {
       score: 0,
       highScore: 0,
-      level: 1, // Можно оставить для совместимости, но не используем
+      level: 1, // Поле остается для совместимости, но не используется
       isPlaying: false,
       isGameOver: false,
       tower: [],
@@ -20,8 +22,9 @@ export class GameLogic {
     };
   }
 
+  // Начало новой игры
   startGame(): GameState {
-    // Первый неподвижный блок внизу экрана
+    // Создаем базовый блок внизу экрана
     const baseBlock: Block = {
       id: Date.now() + 1,
       width: this.config.initialBlockWidth,
@@ -35,12 +38,13 @@ export class GameLogic {
       perfectHit: false,
     };
 
+    // Сбрасываем состояние игры
     this.state = {
       ...this.state,
       isPlaying: true,
       isGameOver: false,
       score: 0,
-      level: 1, // Устанавливаем 1, но не используем
+      level: 1,
       tower: [baseBlock],
       currentBlock: this.createNewBlock(),
       speedMultiplier: 1,
@@ -51,10 +55,12 @@ export class GameLogic {
     return this.state;
   }
 
+  // Создание нового движущегося блока
   createNewBlock(): Block {
     const lastBlock = this.state.tower[this.state.tower.length - 1];
     const direction = Math.random() > 0.5 ? 'left' : 'right';
     
+    // Генерация уникального ID
     const uniqueId = Date.now() + Math.floor(Math.random() * 10000);
 
     return {
@@ -71,12 +77,13 @@ export class GameLogic {
     };
   }
 
+  // Обновление положения движущегося блока
   updateBlockPosition(): GameState {
     if (!this.state.currentBlock || !this.state.isPlaying) return this.state;
 
     const block = {...this.state.currentBlock};
     
-    // Движение влево-вправо
+    // Движение блока влево-вправо
     if (block.direction === 'left') {
       block.x += block.speed;
       if (block.x + block.width >= this.config.screenWidth) {
@@ -93,13 +100,14 @@ export class GameLogic {
     return this.state;
   }
 
+  // Установка блока на башню
   placeBlock(): GameState {
     if (!this.state.currentBlock || !this.state.isPlaying) return this.state;
 
     const lastBlock = this.state.tower[this.state.tower.length - 1];
     const currentBlock = this.state.currentBlock;
 
-    // Расчёт пересечения с предыдущим блоком
+    // Расчет пересечения с предыдущим блоком
     const overlapStart = Math.max(lastBlock.x, currentBlock.x);
     const overlapEnd = Math.min(
       lastBlock.x + lastBlock.width,
@@ -107,7 +115,7 @@ export class GameLogic {
     );
     const overlapWidth = overlapEnd - overlapStart;
 
-    // Проверка на проигрыш
+    // Проверка на проигрыш (слишком маленькое пересечение)
     if (overlapWidth <= this.config.minBlockWidth) {
       this.state.isGameOver = true;
       this.state.isPlaying = false;
@@ -117,7 +125,7 @@ export class GameLogic {
     // Проверка на идеальное попадание
     const isPerfect = Math.abs(lastBlock.x - currentBlock.x) < this.config.perfectThreshold;
     
-    // Новый блок (обрезанный по ширине)
+    // Создаем новый блок (обрезанный по ширине)
     const newBlock: Block = {
       ...currentBlock,
       width: overlapWidth,
@@ -127,18 +135,18 @@ export class GameLogic {
       perfectHit: isPerfect,
     };
 
-    // Обновление счёта
+    // Расчет увеличения счета
     let scoreIncrease = 1;
     if (isPerfect) {
-      scoreIncrease = 3;
+      scoreIncrease = 3; // Бонус за идеальное попадание
       this.state.streak += 1;
     } else {
-      this.state.streak = 0;
+      this.state.streak = 0; // Сбрасываем серию
     }
 
     const newScore = this.state.score + scoreIncrease;
     
-    // Увеличение скорости на основе счёта, а не уровня
+    // Увеличение скорости на основе счета (а не уровня)
     const scoreThreshold = 5; // Увеличиваем скорость каждые 5 очков
     const speedIncreaseFactor = Math.floor(newScore / scoreThreshold);
     
@@ -147,6 +155,7 @@ export class GameLogic {
       1 + (speedIncreaseFactor * 0.2) // Увеличиваем на 20% каждые 5 очков
     );
 
+    // Обновление состояния игры
     this.state = {
       ...this.state,
       score: newScore,
@@ -155,16 +164,18 @@ export class GameLogic {
       tower: [...this.state.tower, newBlock],
       currentBlock: this.createNewBlock(),
       speedMultiplier: newSpeedMultiplier,
-      lastBlockWidth: overlapWidth,
+      lastBlockWidth: overlapWidth, // Новая ширина для следующего блока
     };
 
     return this.state;
   }
 
+  // Получение текущего состояния игры
   getState(): GameState {
     return {...this.state};
   }
 
+  // Сброс игры (полный рестарт)
   resetGame(): GameState {
     this.state = {
       score: 0,

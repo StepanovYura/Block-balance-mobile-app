@@ -1,6 +1,6 @@
 import { Platform, Alert, Linking } from 'react-native';
 
-// Определяем минимальные требования
+// Минимальные требования к устройству
 export const MIN_REQUIREMENTS = {
   ANDROID: {
     MIN_API: 26, // Android 8.0 (Oreo)
@@ -11,8 +11,9 @@ export const MIN_REQUIREMENTS = {
   },
 };
 
-// Проверка совместимости устройства
+// Класс для проверки совместимости устройства
 export class CompatibilityCheck {
+  // Основная проверка совместимости
   static checkCompatibility(): {
     isCompatible: boolean;
     message?: string;
@@ -28,6 +29,7 @@ export class CompatibilityCheck {
     return { isCompatible: true };
   }
 
+  // Проверка совместимости Android
   private static checkAndroidCompatibility() {
     // API level устройства (доступно только на Android)
     const apiLevel = Platform.Version;
@@ -46,9 +48,9 @@ export class CompatibilityCheck {
     return { isCompatible: true };
   }
 
+  // Проверка совместимости iOS
   private static checkIOSCompatibility() {
-    // Для iOS сложнее проверить версию, но можно через DeviceInfo
-    // Пока просто возвращаем совместимость
+    // Для iOS сложнее проверить версию
     return { isCompatible: true };
   }
 
@@ -76,16 +78,16 @@ export class CompatibilityCheck {
     return versionMap[apiLevel] || `API ${apiLevel}`;
   }
 
-  // Проверка доступности функций (опционально)
+  // Проверка доступности функций устройства
   static checkFeatures(): string[] {
     const warnings: string[] = [];
     
-    // Проверка поддержки WebView (для будущих функций)
+    // Проверка поддержки WebView
     if (!this.isWebViewSupported()) {
       warnings.push('Некоторые функции могут не работать из-за устаревшего WebView');
     }
     
-    // Проверка памяти (косвенная)
+    // Проверка памяти (рекомендация)
     if (Platform.OS === 'android') {
       warnings.push('Для оптимальной работы рекомендуется 2+ ГБ ОЗУ');
     }
@@ -93,8 +95,8 @@ export class CompatibilityCheck {
     return warnings;
   }
 
+  // Проверка поддержки WebView
   private static isWebViewSupported(): boolean {
-    // Базовая проверка - если Android ниже 7.0, WebView может быть старым
     const apiLevel = Platform.Version;
     return typeof apiLevel === 'number' && apiLevel >= 24; // Android 7.0+
   }
@@ -127,7 +129,7 @@ export class CompatibilityCheck {
         {
           text: 'Выйти',
           onPress: () => {
-            // На Android можно закрыть приложение
+            // Закрытие приложения на Android
             if (Platform.OS === 'android') {
               const BackHandler = require('react-native').BackHandler;
               BackHandler.exitApp();
@@ -139,7 +141,7 @@ export class CompatibilityCheck {
     );
   }
 
-  // Показать предупреждения
+  // Показать предупреждения о функциях
   static showWarnings(warnings: string[]) {
     if (warnings.length === 0) return;
     

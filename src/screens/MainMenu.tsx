@@ -5,6 +5,7 @@ import { GAME_TEXT, COLORS } from '../game/Constants';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Пропсы для главного меню
 interface MainMenuProps {
   highScore: number;
   avatarUri?: string | null;
@@ -28,20 +29,24 @@ const MainMenu: React.FC<MainMenuProps> = ({
         <Avatar uri={avatarUri} size={60} />
       </TouchableOpacity>
 
+      {/* Заголовок и подзаголовок игры */}
       <View style={styles.header}>
         <Text style={styles.title}>{GAME_TEXT.gameTitle}</Text>
         <Text style={styles.subtitle}>Балансируй башню!</Text>
       </View>
 
+      {/* Отображение рекорда в правом верхнем углу */}
       <View style={styles.highScoreContainer}>
         <Text style={styles.highScoreLabel}>{GAME_TEXT.highScore}</Text>
         <Text style={styles.highScoreValue}>{highScore}</Text>
       </View>
 
+      {/* Основная кнопка начала игры */}
       <TouchableOpacity style={styles.startButton} onPress={onStartGame}>
         <Text style={styles.startButtonText}>{GAME_TEXT.startButton}</Text>
       </TouchableOpacity>
 
+      {/* Инструкция по игре */}
       <View style={styles.instructions}>
         <Text style={styles.instructionText}>• Нажимайте когда блок над башней</Text>
         <Text style={styles.instructionText}>• Блоки ускоряются со временем</Text>
@@ -68,7 +73,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 60,
-    marginTop: 40, // Добавляем отступ сверху для аватара
+    marginTop: 40, // Отступ сверху для аватара
   },
   title: {
     fontSize: 48,

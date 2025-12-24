@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { COLORS } from '../game/Constants';
 
+// Пропсы для экрана несовместимости
 interface IncompatibilityScreenProps {
-  message: string;
-  storeUrl?: string;
-  onRetry?: () => void;
-  onExit?: () => void;
+  message: string; // Сообщение об ошибке
+  storeUrl?: string; // Ссылка в магазин приложений
+  onRetry?: () => void; // Попробовать снова
+  onExit?: () => void; // Выйти из приложения
 }
 
 const IncompatibilityScreen: React.FC<IncompatibilityScreenProps> = ({
@@ -24,6 +25,7 @@ const IncompatibilityScreen: React.FC<IncompatibilityScreenProps> = ({
   onRetry,
   onExit,
 }) => {
+  // Обработчик обновления системы
   const handleUpdate = () => {
     if (storeUrl) {
       Linking.openURL(storeUrl).catch(() => {
@@ -40,15 +42,15 @@ const IncompatibilityScreen: React.FC<IncompatibilityScreenProps> = ({
           <Text style={styles.icon}>⚠️</Text>
         </View>
         
-        {/* Заголовок */}
+        {/* Заголовок экрана */}
         <Text style={styles.title}>Несовместимое устройство</Text>
         
-        {/* Сообщение */}
+        {/* Сообщение об ошибке */}
         <View style={styles.messageContainer}>
           <Text style={styles.message}>{message}</Text>
         </View>
         
-        {/* Дополнительная информация */}
+        {/* Дополнительная информация о требованиях */}
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>Минимальные требования:</Text>
           <Text style={styles.infoItem}>• Android 8.0 (Oreo) или выше</Text>
@@ -77,7 +79,7 @@ const IncompatibilityScreen: React.FC<IncompatibilityScreenProps> = ({
           )}
         </View>
         
-        {/* Контактная информация */}
+        {/* Контактная информация для поддержки */}
         <View style={styles.contactContainer}>
           <Text style={styles.contactText}>
             Если вы считаете, что это ошибка, свяжитесь с поддержкой:

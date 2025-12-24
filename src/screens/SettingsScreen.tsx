@@ -12,6 +12,7 @@ import Avatar from '../components/Avatar';
 import { Settings } from '../types/game.types';
 import { COLORS } from '../game/Constants';
 
+// Пропсы для экрана настроек
 interface SettingsScreenProps {
   settings: Settings;
   avatarUri?: string | null;
@@ -29,6 +30,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 }) => {
   const [isChangingAvatar, setIsChangingAvatar] = useState(false);
 
+  // Переключение настроек
   const handleToggle = (key: keyof Settings) => {
     onSettingsChange({
       ...settings,
@@ -36,12 +38,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     });
   };
 
+  // Обработчик смены аватара
   const handleChangeAvatar = () => {
     if (isChangingAvatar) return;
     
     setIsChangingAvatar(true);
     
-    // Здесь вызов Image Picker
+    // Диалоговое окно выбора способа смены аватара
     Alert.alert(
       'Сменить аватар',
       'Выберите способ',
@@ -67,17 +70,17 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     );
   };
 
+  // Заглушка для фотосъемки
   const takePhoto = () => {
-    // Реализация с помощью camera
     console.log('Take photo clicked');
     setIsChangingAvatar(false);
   };
 
+  // Заглушка для выбора изображения
   const pickImage = () => {
-    // Реализация выбора изображения
     console.log('Pick image clicked');
     
-    // Заглушка - устанавливаем тестовый аватар
+    // Временная заглушка - тестовый аватар
     const testAvatarUri = 'https://via.placeholder.com/150/3498db/ffffff?text=AVATAR';
     onAvatarChange(testAvatarUri);
     setIsChangingAvatar(false);
@@ -85,6 +88,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     Alert.alert('Успех', 'Аватар изменен!');
   };
 
+  // Сброс аватара на стандартный
   const resetAvatar = () => {
     onAvatarChange('');
     setIsChangingAvatar(false);
@@ -93,19 +97,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Заголовок */}
+      {/* Заголовок экрана */}
       <View style={styles.header}>
         <Text style={styles.title}>НАСТРОЙКИ</Text>
         <Text style={styles.subtitle}>Настройте игру под себя</Text>
       </View>
 
-      {/* Основной контент */}
+      {/* Основной контент с прокруткой */}
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
         
-        {/* Раздел профиля */}
+        {/* Раздел профиля пользователя */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Профиль</Text>
           
@@ -134,7 +138,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </View>
         </View>
 
-        {/* Раздел звуков */}
+        {/* Раздел настроек звука */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Звуки</Text>
           
@@ -153,7 +157,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         </View>
 
-        {/* Раздел вибрации */}
+        {/* Раздел настроек вибрации */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Виброотклик</Text>
           
@@ -165,7 +169,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
           />
         </View>
 
-        {/* Раздел информации */}
+        {/* Раздел информации об игре */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Об игре</Text>
           
@@ -188,7 +192,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   );
 };
 
-// Добавляем недостающие стили
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// Добавляем TouchableOpacity
+// Импортируем TouchableOpacity
 import { TouchableOpacity } from 'react-native';
 
 export default SettingsScreen;

@@ -13,6 +13,7 @@ import {GAME_TEXT, COLORS} from '../game/Constants';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
+// Пропсы для игрового экрана
 interface GameScreenProps {
   gameState: GameState;
   onPlaceBlock: () => void;
@@ -30,14 +31,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Верхняя панель с информацией - убираем уровень */}
+      {/* Верхняя панель с информацией о счете и рекорде */}
       <View style={styles.topBar}>
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreLabel}>{GAME_TEXT.score}</Text>
           <Text style={styles.scoreValue}>{gameState.score}</Text>
         </View>
-        
-        {/* Убираем блок с уровнем */}
         
         <View style={styles.highScoreContainer}>
           <Text style={styles.highScoreLabel}>{GAME_TEXT.highScore}</Text>
@@ -45,13 +44,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
         </View>
       </View>
 
-      {/* Игровая зона */}
+      {/* Основная игровая зона (область для установки блоков) */}
       <TouchableOpacity
         style={styles.gameArea}
         activeOpacity={1}
         onPress={onPlaceBlock}
         ref={gameAreaRef}>
-        {/* Башня */}
+        {/* Отображение построенной башни */}
         {gameState.tower.map(block => (
           <Block key={block.id} block={block} />
         ))}
@@ -61,7 +60,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           <Block block={gameState.currentBlock} isCurrent={true} />
         )}
         
-        {/* Инструкция */}
+        {/* Инструкция для новых игроков */}
         {gameState.tower.length === 1 && (
           <View style={styles.instructionOverlay}>
             <Text style={styles.instructionText}>Нажимайте чтобы поставить блок!</Text>
@@ -69,7 +68,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         )}
       </TouchableOpacity>
 
-      {/* Экран Game Over */}
+      {/* Экран Game Over (показывается при проигрыше) */}
       {gameState.isGameOver && (
         <View style={styles.gameOverOverlay}>
           <View style={styles.gameOverContent}>
@@ -101,7 +100,7 @@ const styles = StyleSheet.create({
   },
   scoreContainer: {
     alignItems: 'center',
-    flex: 1, // Занимаем больше места
+    flex: 1,
   },
   scoreLabel: {
     fontSize: 14,
@@ -109,13 +108,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   scoreValue: {
-    fontSize: 32, // Увеличиваем шрифт
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#3498db',
   },
   highScoreContainer: {
     alignItems: 'center',
-    flex: 1, // Занимаем больше места
+    flex: 1,
   },
   highScoreLabel: {
     fontSize: 14,
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   highScoreValue: {
-    fontSize: 32, // Увеличиваем шрифт
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#9b59b6',
   },
