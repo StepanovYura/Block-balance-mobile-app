@@ -79,11 +79,12 @@ export class GameLogic {
 
   // Обновление положения движущегося блока
   updateBlockPosition(): GameState {
-    if (!this.state.currentBlock || !this.state.isPlaying) return this.state;
+    if (!this.state.currentBlock || !this.state.isPlaying) {
+      return { ...this.state };
+    }
 
-    const block = {...this.state.currentBlock};
-    
-    // Движение блока влево-вправо
+    const block = { ...this.state.currentBlock };
+
     if (block.direction === 'left') {
       block.x += block.speed;
       if (block.x + block.width >= this.config.screenWidth) {
@@ -96,9 +97,15 @@ export class GameLogic {
       }
     }
 
-    this.state.currentBlock = block;
-    return this.state;
+    const newState = {
+      ...this.state,
+      currentBlock: block,
+    };
+
+    this.state = newState;
+    return newState;
   }
+
 
   // Установка блока на башню
   placeBlock(): GameState {
