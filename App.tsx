@@ -7,6 +7,7 @@ import NavigationBar from './src/components/NavigationBar';
 import { GameLogic } from './src/game/GameLogic';
 import { Storage } from './src/utils/Storage';
 import { GameState, Settings, ScreenType } from './src/types/game.types';
+import SimpleAudio from './src/utils/SimpleAudio';
 
 // Создаем экземпляр игровой логики
 const gameLogic = new GameLogic();
@@ -16,6 +17,7 @@ const App = () => {
   const [gameState, setGameState] = useState<GameState>(gameLogic.getState());
   const [highScore, setHighScore] = useState(0);
   const [activeScreen, setActiveScreen] = useState<ScreenType>('main');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings>({
     soundEnabled: true,
     musicEnabled: true,
@@ -29,6 +31,8 @@ const App = () => {
   useEffect(() => {
     loadHighScore();
     loadSettings();
+
+    SimpleAudio.updateSettings(settings);
   }, []);
 
   // Загрузка рекорда из хранилища
@@ -56,11 +60,20 @@ const App = () => {
   // Сохранение настроек
   const saveSettings = async (newSettings: Settings) => {
     setSettings(newSettings);
+
+    SimpleAudio.updateSettings(newSettings);
+
     try {
       await Storage.saveSettings(newSettings);
     } catch (error) {
       console.error('Ошибка сохранения настроек:', error);
     }
+  };
+
+  // Функция для изменения аватара:
+  const handleAvatarChange = (uri: string) => {
+    setAvatarUri(uri);
+    // Здесь можно добавить сохранение аватара в Storage
   };
 
   // Сохранение нового рекорда
@@ -97,6 +110,8 @@ const App = () => {
     setGameState(newState);
     setActiveScreen('game');
     startGameLoop(); // Запускаем игровой цикл
+
+    SimpleAudio.playClick();
   };
 
   // Установка блока на башню
@@ -106,9 +121,13 @@ const App = () => {
     const newState = gameLogic.placeBlock();
     setGameState(newState);
 
+    const isPerfect = newState.currentBlock?.perfectHit || false;
+    SimpleAudio.playBlockPlace(isPerfect);
+
     // Сохраняем рекорд если побили
     if (newState.score > highScore) {
       saveHighScore(newState.score);
+      SimpleAudio.playSuccess();
     }
 
     // Виброотклик при установке блока (если включен)
@@ -121,6 +140,7 @@ const App = () => {
     if (newState.isGameOver && gameLoopRef.current) {
       clearInterval(gameLoopRef.current);
       gameLoopRef.current = null;
+      SimpleAudio.playGameOver();
     }
   };
 
@@ -130,6 +150,9 @@ const App = () => {
       clearInterval(gameLoopRef.current);
       gameLoopRef.current = null;
     }
+
+    SimpleAudio.playClick();
+
     const newState = gameLogic.startGame();
     setGameState(newState);
     startGameLoop(); // Запускаем игровой цикл заново
@@ -148,6 +171,9 @@ const App = () => {
 
   // Навигация между экранами
   const handleNavigate = (screen: ScreenType) => {
+
+    SimpleAudio.playClick();
+
     if (screen === 'game' && !gameState.isPlaying) {
       handleStartGame(); // Автоматически начинаем игру
     } else {
@@ -201,7 +227,9 @@ const App = () => {
         return (
           <SettingsScreen
             settings={settings}
+            avatarUri={avatarUri}
             onSettingsChange={saveSettings}
+            onAvatarChange={handleAvatarChange}
             onNavigate={handleNavigate}
           />
         );

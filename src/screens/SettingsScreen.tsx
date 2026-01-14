@@ -6,7 +6,11 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  TouchableOpacity, // Добавлен импорт
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
+import { launchImageLibrary, launchCamera, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker';
 import Switch from '../components/Switch';
 import Avatar from '../components/Avatar';
 import { Settings } from '../types/game.types';
@@ -38,13 +42,55 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     });
   };
 
+  // Запрос разрешений для Android
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: "Разрешение на использование камеры",
+            message: "Приложению требуется доступ к камере для съемки фото",
+            buttonNeutral: "Спросить позже",
+            buttonNegative: "Отмена",
+            buttonPositive: "Разрешить"
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const requestGalleryPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: "Разрешение на доступ к галерее",
+            message: "Приложению требуется доступ к галерее для выбора фото",
+            buttonNeutral: "Спросить позже",
+            buttonNegative: "Отмена",
+            buttonPositive: "Разрешить"
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Обработчик смены аватара
   const handleChangeAvatar = () => {
     if (isChangingAvatar) return;
     
-    setIsChangingAvatar(true);
-    
-    // Диалоговое окно выбора способа смены аватара
     Alert.alert(
       'Сменить аватар',
       'Выберите способ',
@@ -65,27 +111,75 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {
           text: 'Отмена',
           style: 'cancel',
+          onPress: () => setIsChangingAvatar(false),
         },
       ]
     );
   };
 
-  // Заглушка для фотосъемки
-  const takePhoto = () => {
-    console.log('Take photo clicked');
-    setIsChangingAvatar(false);
+  // Фотосъемка
+  const takePhoto = async () => {
+    setIsChangingAvatar(true);
+    
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Ошибка', 'Необходимо разрешение на использование камеры');
+      setIsChangingAvatar(false);
+      return;
+    }
+
+    const options: CameraOptions = {
+      mediaType: 'photo',
+      quality: 0.8,
+      cameraType: 'front',
+      saveToPhotos: true,
+    };
+
+    launchCamera(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+        Alert.alert('Ошибка', 'Не удалось сделать фото');
+      } else if (response.assets && response.assets[0].uri) {
+        const uri = response.assets[0].uri;
+        onAvatarChange(uri);
+        Alert.alert('Успех', 'Аватар успешно обновлен!');
+      }
+      setIsChangingAvatar(false);
+    });
   };
 
-  // Заглушка для выбора изображения
-  const pickImage = () => {
-    console.log('Pick image clicked');
+  // Выбор изображения из галереи
+  const pickImage = async () => {
+    setIsChangingAvatar(true);
     
-    // Временная заглушка - тестовый аватар
-    const testAvatarUri = 'https://via.placeholder.com/150/3498db/ffffff?text=AVATAR';
-    onAvatarChange(testAvatarUri);
-    setIsChangingAvatar(false);
-    
-    Alert.alert('Успех', 'Аватар изменен!');
+    const hasPermission = await requestGalleryPermission();
+    // if (!hasPermission) {
+    //   Alert.alert('Ошибка', 'Необходимо разрешение на доступ к галерее');
+    //   setIsChangingAvatar(false);
+    //   return;
+    // }
+
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo',
+      quality: 0.8,
+      selectionLimit: 1,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+        Alert.alert('Ошибка', 'Не удалось выбрать изображение');
+      } else if (response.assets && response.assets[0].uri) {
+        const uri = response.assets[0].uri;
+        onAvatarChange(uri);
+        Alert.alert('Успех', 'Аватар успешно обновлен!');
+      }
+      setIsChangingAvatar(false);
+    });
   };
 
   // Сброс аватара на стандартный
@@ -310,8 +404,5 @@ const styles = StyleSheet.create({
     height: 20,
   },
 });
-
-// Импортируем TouchableOpacity
-import { TouchableOpacity } from 'react-native';
 
 export default SettingsScreen;
