@@ -31,9 +31,11 @@ const App = () => {
   useEffect(() => {
     loadHighScore();
     loadSettings();
-
-    SimpleAudio.updateSettings(settings);
   }, []);
+
+  useEffect(() => {
+    SimpleAudio.updateSettings(settings);
+  }, [settings]);
 
   // Загрузка рекорда из хранилища
   const loadHighScore = async () => {
@@ -59,9 +61,8 @@ const App = () => {
 
   // Сохранение настроек
   const saveSettings = async (newSettings: Settings) => {
-    setSettings(newSettings);
-
     SimpleAudio.updateSettings(newSettings);
+    setSettings(newSettings);
 
     try {
       await Storage.saveSettings(newSettings);
@@ -128,12 +129,6 @@ const App = () => {
     if (newState.score > highScore) {
       saveHighScore(newState.score);
       SimpleAudio.playSuccess();
-    }
-
-    // Виброотклик при установке блока (если включен)
-    if (settings.vibrationEnabled) {
-      // Реализация вибрации будет добавлена позже
-      // Vibration.vibrate(newState.currentBlock?.perfectHit ? 100 : 50);
     }
 
     // Останавливаем игровой цикл при проигрыше

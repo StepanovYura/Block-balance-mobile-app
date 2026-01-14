@@ -3,7 +3,6 @@ import { Platform, Vibration } from 'react-native';
 import Sound from 'react-native-sound';
 import { Settings } from '../types/game.types';
 
-// Устанавливаем категорию звука
 Sound.setCategory('Playback');
 
 export class SimpleAudio {
@@ -11,13 +10,11 @@ export class SimpleAudio {
   private vibrationEnabled: boolean = true;
   private musicEnabled: boolean = true;
   
-  // Объекты звуков
   private clickSound: Sound | null = null;
   private placeSound: Sound | null = null;
   private successSound: Sound | null = null;
   private gameOverSound: Sound | null = null;
 
-  // Карта для хранения звуков
   private sounds: { [key: string]: Sound | null } = {
     clickSound: null,
     placeSound: null,
@@ -31,13 +28,14 @@ export class SimpleAudio {
 
   private initializeSounds() {
     try {
-      // Загружаем звуки
-      this.loadSound('clickSound', 'click.wav');
-      this.loadSound('placeSound', 'place.wav');
-      this.loadSound('successSound', 'success.wav');
-      this.loadSound('gameOverSound', 'lose.wav');
+      if (Platform.OS !== 'web') {
+        this.loadSound('clickSound', 'click.wav');
+        this.loadSound('placeSound', 'place.wav');
+        this.loadSound('successSound', 'success.wav');
+        this.loadSound('gameOverSound', 'lose.wav');
+      }
     } catch (error) {
-      console.log('Error initializing sounds, using vibration only:', error);
+      console.log('Error initializing sounds:', error);
     }
   }
 
@@ -47,11 +45,8 @@ export class SimpleAudio {
         if (error) {
           console.log(`Failed to load ${soundKey}:`, error);
           this.sounds[soundKey] = null;
-        } else {
-          console.log(`${soundKey} loaded successfully`);
         }
       });
-      
       this.sounds[soundKey] = sound;
     } catch (error) {
       console.log(`Could not create sound ${soundKey}:`, error);
@@ -59,10 +54,22 @@ export class SimpleAudio {
     }
   }
 
+  // Ключевое исправление: принимаем объект Settings
   updateSettings(settings: Settings) {
     this.soundEnabled = settings.soundEnabled;
     this.vibrationEnabled = settings.vibrationEnabled;
     this.musicEnabled = settings.musicEnabled;
+    
+    console.log('Audio settings updated:', {
+      soundEnabled: this.soundEnabled,
+      vibrationEnabled: this.vibrationEnabled,
+      musicEnabled: this.musicEnabled
+    });
+  }
+
+  // Проверка вибрации
+  private shouldVibrate(): boolean {
+    return this.vibrationEnabled && Platform.OS !== 'web';
   }
 
   private playSound(soundKey: string, volume: number = 1.0): boolean {
@@ -74,29 +81,25 @@ export class SimpleAudio {
     try {
       sound.setVolume(volume);
       sound.stop(() => {
-        sound.play((success) => {
-          if (!success) {
-            console.log(`Sound ${soundKey} playback failed`);
-          }
-        });
+        sound.play();
       });
       return true;
     } catch (error) {
-      console.log(`Error playing sound ${soundKey}:`, error);
       return false;
     }
   }
 
   playClick() {
-    const soundPlayed = this.playSound('clickSound', 0.7);
+    this.playSound('clickSound', 0.7);
     
-    if (this.vibrationEnabled && Platform.OS !== 'web') {
-      Vibration.vibrate(soundPlayed ? 10 : 50);
+    // Вибрация только если включена в настройках
+    if (this.shouldVibrate()) {
+      Vibration.vibrate(10);
     }
   }
 
   playBlockPlace(perfect: boolean = false) {
-    const soundPlayed = this.playSound('placeSound', 0.8);
+    this.playSound('placeSound', 0.8);
     
     if (perfect) {
       setTimeout(() => {
@@ -104,11 +107,12 @@ export class SimpleAudio {
       }, 100);
     }
     
-    if (this.vibrationEnabled && Platform.OS !== 'web') {
+    // Вибрация с проверкой настроек
+    if (this.shouldVibrate()) {
       if (perfect) {
         Vibration.vibrate([0, 100, 50, 100]);
       } else {
-        Vibration.vibrate(soundPlayed ? 30 : 50);
+        Vibration.vibrate(30);
       }
     }
   }
@@ -116,7 +120,7 @@ export class SimpleAudio {
   playSuccess() {
     this.playSound('successSound', 0.8);
     
-    if (this.vibrationEnabled && Platform.OS !== 'web') {
+    if (this.shouldVibrate()) {
       Vibration.vibrate([0, 100, 50, 100, 50, 100]);
     }
   }
@@ -124,7 +128,7 @@ export class SimpleAudio {
   playGameOver() {
     this.playSound('gameOverSound', 1.0);
     
-    if (this.vibrationEnabled && Platform.OS !== 'web') {
+    if (this.shouldVibrate()) {
       Vibration.vibrate([0, 500, 200, 500]);
     }
   }
@@ -132,7 +136,7 @@ export class SimpleAudio {
   playFail() {
     this.playSound('gameOverSound', 0.5);
     
-    if (this.vibrationEnabled && Platform.OS !== 'web') {
+    if (this.shouldVibrate()) {
       Vibration.vibrate([0, 300, 100, 300]);
     }
   }
