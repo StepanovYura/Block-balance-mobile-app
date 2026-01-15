@@ -6,11 +6,11 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
-  TouchableOpacity, // Добавлен импорт
+  TouchableOpacity,
   Platform,
   PermissionsAndroid,
 } from 'react-native';
-import { launchImageLibrary, launchCamera, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker';
+import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import Switch from '../components/Switch';
 import Avatar from '../components/Avatar';
 import { Settings } from '../types/game.types';
@@ -23,6 +23,7 @@ interface SettingsScreenProps {
   onSettingsChange: (settings: Settings) => void;
   onAvatarChange: (uri: string) => void;
   onNavigate: (screen: 'main' | 'game' | 'settings') => void;
+  onRequestPermissions?: () => Promise<boolean>;
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -31,6 +32,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onSettingsChange,
   onAvatarChange,
   onNavigate,
+  onRequestPermissions,
 }) => {
   const [isChangingAvatar, setIsChangingAvatar] = useState(false);
 
@@ -42,63 +44,45 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     });
   };
 
-  // Запрос разрешений для Android
-  const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: "Разрешение на использование камеры",
-            message: "Приложению требуется доступ к камере для съемки фото",
-            buttonNeutral: "Спросить позже",
-            buttonNegative: "Отмена",
-            buttonPositive: "Разрешить"
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const requestGalleryPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: "Разрешение на доступ к галерее",
-            message: "Приложению требуется доступ к галерее для выбора фото",
-            buttonNeutral: "Спросить позже",
-            buttonNegative: "Отмена",
-            buttonPositive: "Разрешить"
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
-
   // Обработчик смены аватара
-  const handleChangeAvatar = () => {
+  const handleChangeAvatar = async () => {
     if (isChangingAvatar) return;
+
+    if (Platform.OS === 'android') {
+      try {
+        let hasPermission = false;
+        const isAndroid13OrHigher = Platform.Version >= 33;
+        
+        if (isAndroid13OrHigher) {
+          hasPermission = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          );
+        } else {
+          hasPermission = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+        }
+        
+        if (!hasPermission && onRequestPermissions) {
+          const granted = await onRequestPermissions();
+          if (!granted) {
+            Alert.alert(
+              'Доступ запрещен',
+              'Для выбора аватара из галереи необходимо предоставить разрешение на доступ к фотографиям. Вы можете предоставить его в настройках устройства.',
+              [{ text: 'Понятно' }]
+            );
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Ошибка проверки разрешений:', error);
+      }
+    }
     
     Alert.alert(
       'Сменить аватар',
       'Выберите способ',
       [
-        {
-          text: 'Сделать фото',
-          onPress: () => takePhoto(),
-        },
         {
           text: 'Выбрать из галереи',
           onPress: () => pickImage(),
@@ -117,50 +101,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     );
   };
 
-  // Фотосъемка
-  const takePhoto = async () => {
-    setIsChangingAvatar(true);
-    
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      Alert.alert('Ошибка', 'Необходимо разрешение на использование камеры');
-      setIsChangingAvatar(false);
-      return;
-    }
-
-    const options: CameraOptions = {
-      mediaType: 'photo',
-      quality: 0.8,
-      cameraType: 'front',
-      saveToPhotos: true,
-    };
-
-    launchCamera(options, (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorMessage);
-        Alert.alert('Ошибка', 'Не удалось сделать фото');
-      } else if (response.assets && response.assets[0].uri) {
-        const uri = response.assets[0].uri;
-        onAvatarChange(uri);
-        Alert.alert('Успех', 'Аватар успешно обновлен!');
-      }
-      setIsChangingAvatar(false);
-    });
-  };
-
   // Выбор изображения из галереи
   const pickImage = async () => {
     setIsChangingAvatar(true);
     
-    const hasPermission = await requestGalleryPermission();
-    // if (!hasPermission) {
-    //   Alert.alert('Ошибка', 'Необходимо разрешение на доступ к галерее');
-    //   setIsChangingAvatar(false);
-    //   return;
-    // }
-
     const options: ImageLibraryOptions = {
       mediaType: 'photo',
       quality: 0.8,
@@ -184,7 +128,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // Сброс аватара на стандартный
   const resetAvatar = () => {
-    onAvatarChange('');
+    onAvatarChange(''); // Пустая строка для сброса
     setIsChangingAvatar(false);
     Alert.alert('Успех', 'Аватар сброшен на стандартный');
   };

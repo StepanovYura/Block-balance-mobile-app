@@ -12,6 +12,7 @@ interface StorageSettings {
 const HIGH_SCORE_KEY = '@blockbalance_high_score';
 const SETTINGS_KEY = '@blockbalance_settings';
 const AVATAR_KEY = '@blockbalance_avatar'; // Отдельный ключ для аватара
+const PERMISSIONS_REQUESTED_KEY = '@blockbalance_permissions_requested';
 
 export const Storage = {
   // Получение рекорда из хранилища
@@ -70,9 +71,34 @@ export const Storage = {
   // Сохранение аватара пользователя
   async saveAvatar(avatarUri: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(AVATAR_KEY, avatarUri);
+      // Если передана пустая строка - удаляем аватар
+      if (!avatarUri || avatarUri.trim() === '') {
+        await AsyncStorage.removeItem(AVATAR_KEY);
+      } else {
+        await AsyncStorage.setItem(AVATAR_KEY, avatarUri);
+      }
     } catch (error) {
       console.error('Ошибка сохранения аватара:', error);
+    }
+  },
+
+  // Проверка, запрашивались ли уже разрешения
+  async getPermissionsRequested(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(PERMISSIONS_REQUESTED_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Ошибка чтения флага разрешений:', error);
+      return false;
+    }
+  },
+
+  // Сохранение флага, что разрешения запрашивались
+  async savePermissionsRequested(requested: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(PERMISSIONS_REQUESTED_KEY, requested.toString());
+    } catch (error) {
+      console.error('Ошибка сохранения флага разрешений:', error);
     }
   },
 

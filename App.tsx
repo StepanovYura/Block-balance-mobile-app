@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, View } from 'react-native';
+import { StyleSheet, SafeAreaView, StatusBar, View, PermissionsAndroid, Platform } from 'react-native';
 import MainMenu from './src/screens/MainMenu';
 import GameScreen from './src/screens/GameScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -23,19 +23,112 @@ const App = () => {
     musicEnabled: true,
     vibrationEnabled: true,
   });
+   const [permissionsRequested, setPermissionsRequested] = useState(false);
   
   // Референс для игрового цикла
   const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Загрузка рекорда и настроек при старте приложения
-  useEffect(() => {
-    loadHighScore();
-    loadSettings();
+  // useEffect(() => {
+  //   loadHighScore();
+  //   loadSettings();
+  //   loadAvatar();
+  // }, []);
+
+   useEffect(() => {
+    const initializeApp = async () => {
+      await loadHighScore();
+      await loadSettings();
+      await loadAvatar();
+      await checkAndRequestPermissions();
+    };
+    
+    initializeApp();
   }, []);
 
   useEffect(() => {
     SimpleAudio.updateSettings(settings);
   }, [settings]);
+
+   // Функция запроса разрешений для Android
+  const requestMediaPermissions = async () => {
+    if (Platform.OS !== 'android') return true;
+
+    try {
+      // Проверяем версию Android
+      const isAndroid13OrHigher = Platform.Version >= 33;
+      
+      if (isAndroid13OrHigher) {
+        // Для Android 13+ используем READ_MEDIA_IMAGES
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          {
+            title: "Доступ к фотографиям",
+            message: "Приложению требуется доступ к вашим фотографиям для выбора аватара",
+            buttonNeutral: "Спросить позже",
+            buttonNegative: "Отмена",
+            buttonPositive: "Разрешить"
+          }
+        );
+        
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else {
+        // Для Android < 13 используем READ_EXTERNAL_STORAGE
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: "Доступ к хранилищу",
+            message: "Приложению требуется доступ к хранилищу для выбора аватара",
+            buttonNeutral: "Спросить позже",
+            buttonNegative: "Отмена",
+            buttonPositive: "Разрешить"
+          }
+        );
+        
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+    } catch (err) {
+      console.warn('Ошибка запроса разрешений:', err);
+      return false;
+    }
+  };
+
+  // Функция проверки и запроса разрешений
+  const checkAndRequestPermissions = async () => {
+    if (Platform.OS !== 'android') return;
+
+    try {
+      // Проверяем, запрашивали ли уже разрешения
+      const hasRequested = await Storage.getPermissionsRequested();
+      if (hasRequested) {
+        setPermissionsRequested(true);
+        return;
+      }
+
+      // Запрашиваем разрешения при первом запуске
+      const granted = await requestMediaPermissions();
+      
+      if (granted) {
+        console.log('Разрешения на доступ к медиа предоставлены');
+      } else {
+        console.log('Разрешения на доступ к медиа отклонены');
+        // Можно показать сообщение, но не обязательно
+        // Alert.alert(
+        //   'Внимание',
+        //   'Без разрешения вы не сможете выбрать аватар из галереи. Вы можете предоставить разрешение позже в настройках приложения.',
+        //   [{ text: 'Понятно' }]
+        // );
+      }
+
+      // Сохраняем флаг, что запрашивали разрешения
+      await Storage.savePermissionsRequested(true);
+      setPermissionsRequested(true);
+      
+    } catch (error) {
+      console.error('Ошибка при проверке разрешений:', error);
+    }
+  };
+
 
   // Загрузка рекорда из хранилища
   const loadHighScore = async () => {
@@ -71,10 +164,26 @@ const App = () => {
     }
   };
 
-  // Функция для изменения аватара:
-  const handleAvatarChange = (uri: string) => {
+  // Функция загрузки аватара
+  const loadAvatar = async () => {
+    try {
+      const savedAvatarUri = await Storage.getAvatar();
+      if (savedAvatarUri) {
+        setAvatarUri(savedAvatarUri);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки аватара:', error);
+    }
+  };
+
+  // Функция для изменения аватара
+  const handleAvatarChange = async (uri: string) => {
     setAvatarUri(uri);
-    // Здесь можно добавить сохранение аватара в Storage
+    try {
+      await Storage.saveAvatar(uri); // Сохраняем в Storage
+    } catch (error) {
+      console.error('Ошибка сохранения аватара:', error);
+    }
   };
 
   // Сохранение нового рекорда
@@ -203,8 +312,10 @@ const App = () => {
       case 'main':
         return (
           <MainMenu 
-            highScore={highScore} 
-            onStartGame={() => handleNavigate('game')} 
+            highScore={highScore}
+            avatarUri={avatarUri} 
+            onStartGame={() => handleNavigate('game')}
+            onAvatarPress={() => handleNavigate('settings')} 
           />
         );
       
@@ -226,6 +337,7 @@ const App = () => {
             onSettingsChange={saveSettings}
             onAvatarChange={handleAvatarChange}
             onNavigate={handleNavigate}
+            onRequestPermissions={requestMediaPermissions}
           />
         );
       

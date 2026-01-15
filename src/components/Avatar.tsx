@@ -15,22 +15,28 @@ const Avatar: React.FC<AvatarProps> = ({
   onPress, 
   editable = false 
 }) => {
-  // Стандартный аватар (нужно создать файл assets/default-avatar.png)
+  // Стандартный аватар
   const defaultAvatar = require('../assets/default-avatar.png');
+
+  // Если uri пустая строка или null - показываем стандартный аватар
+  const imageSource = uri && uri.trim() !== '' ? { uri } : defaultAvatar;
 
   const avatarStyle = {
     width: size,
     height: size,
-    borderRadius: size / 2, // Делаем круг
+    borderRadius: size / 2,
   };
 
   const content = (
     <View style={[styles.container, avatarStyle]}>
       {/* Изображение аватара */}
       <Image
-        source={uri ? { uri } : defaultAvatar}
+        source={imageSource}
         style={[styles.avatar, avatarStyle]}
         resizeMode="cover"
+        onError={(e) => {
+          console.log('Failed to load avatar image:', e.nativeEvent.error);
+        }}
       />
       {/* Иконка редактирования (если включено) */}
       {editable && (
@@ -58,9 +64,9 @@ const Avatar: React.FC<AvatarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ecf0f1', // Цвет фона по умолчанию
+    backgroundColor: '#ecf0f1',
     borderWidth: 2,
-    borderColor: '#3498db', // Синяя рамка
+    borderColor: '#3498db',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -75,7 +81,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Полупрозрачный оверлей
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
   },
