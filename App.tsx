@@ -8,6 +8,7 @@ import { GameLogic } from './src/game/GameLogic';
 import { Storage } from './src/utils/Storage';
 import { GameState, Settings, ScreenType } from './src/types/game.types';
 import SimpleAudio from './src/utils/SimpleAudio';
+import { AppState, AppStateStatus } from 'react-native';
 
 // Создаем экземпляр игровой логики
 const gameLogic = new GameLogic();
@@ -49,6 +50,30 @@ const App = () => {
   useEffect(() => {
     SimpleAudio.updateSettings(settings);
   }, [settings]);
+
+  useEffect(() => {
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    console.log('App state changed to:', nextAppState);
+    
+    if (nextAppState === 'background' || nextAppState === 'inactive') {
+      // При сворачивании приложения - всегда пауза
+      SimpleAudio.pauseBackgroundMusic();
+    } else if (nextAppState === 'active') {
+      // При разворачивании - включаем только если мы в игре и музыка включена
+      if (activeScreen === 'game' && settings.musicEnabled) {
+        setTimeout(() => {
+          SimpleAudio.resumeBackgroundMusic();
+        }, 300);
+      }
+    }
+  };
+
+  const subscription = AppState.addEventListener('change', handleAppStateChange);
+  
+  return () => {
+    subscription.remove();
+  };
+}, [activeScreen, settings.musicEnabled]);
 
    // Функция запроса разрешений для Android
   const requestMediaPermissions = async () => {
@@ -222,6 +247,7 @@ const App = () => {
     startGameLoop(); // Запускаем игровой цикл
 
     SimpleAudio.playClick();
+    SimpleAudio.playBackgroundMusic();
   };
 
   // Установка блока на башню
@@ -260,6 +286,10 @@ const App = () => {
     const newState = gameLogic.startGame();
     setGameState(newState);
     startGameLoop(); // Запускаем игровой цикл заново
+
+    if (settings.musicEnabled) {
+    SimpleAudio.playBackgroundMusic();
+  }
   };
 
   // Возврат в главное меню
@@ -271,6 +301,8 @@ const App = () => {
     const resetState = gameLogic.getState();
     setGameState(resetState);
     setActiveScreen('main');
+
+    SimpleAudio.stopBackgroundMusic();
   };
 
   // Навигация между экранами
@@ -281,8 +313,20 @@ const App = () => {
     if (screen === 'game' && !gameState.isPlaying) {
       handleStartGame(); // Автоматически начинаем игру
     } else {
-      setActiveScreen(screen);
-    }
+        if (activeScreen === 'game' && screen !== 'game') {
+          SimpleAudio.pauseBackgroundMusic();
+        }
+
+        setActiveScreen(screen);
+    
+        // ПОСЛЕ смены экрана проверяем, если вернулись в игру - включаем музыку
+        if (screen === 'game' && settings.musicEnabled) {
+          // Небольшая задержка чтобы экран успел отрендериться
+          setTimeout(() => {
+            SimpleAudio.resumeBackgroundMusic();
+          }, 100);
+        };
+    };
   };
 
   // Очистка интервалов при размонтировании компонента

@@ -1,6 +1,7 @@
 // utils/SimpleAudio.ts
 import { Platform, Vibration } from 'react-native';
 import Sound from 'react-native-sound';
+import SoundPlayer from 'react-native-sound-player';
 import { Settings } from '../types/game.types';
 
 Sound.setCategory('Playback');
@@ -14,6 +15,9 @@ export class SimpleAudio {
   private placeSound: Sound | null = null;
   private successSound: Sound | null = null;
   private gameOverSound: Sound | null = null;
+  
+  private isMusicPlaying: boolean = false;
+  private musicLoaded: boolean = false;
 
   private sounds: { [key: string]: Sound | null } = {
     clickSound: null,
@@ -54,8 +58,8 @@ export class SimpleAudio {
     }
   }
 
-  // Ключевое исправление: принимаем объект Settings
   updateSettings(settings: Settings) {
+    const oldMusicEnabled = this.musicEnabled;
     this.soundEnabled = settings.soundEnabled;
     this.vibrationEnabled = settings.vibrationEnabled;
     this.musicEnabled = settings.musicEnabled;
@@ -65,11 +69,79 @@ export class SimpleAudio {
       vibrationEnabled: this.vibrationEnabled,
       musicEnabled: this.musicEnabled
     });
+
+    // Управление музыкой
+    if (oldMusicEnabled !== this.musicEnabled) {
+      if (this.musicEnabled) {
+        if (this.isMusicPlaying) {
+          this.resumeBackgroundMusic();
+        }
+      } else {
+        this.pauseBackgroundMusic();
+      }
+    }
   }
 
-  // Проверка вибрации
-  private shouldVibrate(): boolean {
-    return this.vibrationEnabled && Platform.OS !== 'web';
+  // Фоновая музыка
+  playBackgroundMusic() {
+    if (!this.musicEnabled || this.isMusicPlaying) return;
+
+    try {
+      // Загружаем музыку (делаем это при первом запуске)
+      if (!this.musicLoaded) {
+        // Для iOS нужен путь к файлу в bundle
+        if (Platform.OS === 'ios') {
+          SoundPlayer.loadSoundFile('soundtrack', 'mp3');
+        } else {
+          // Для Android
+          SoundPlayer.loadSoundFile('soundtrack', 'mp3');
+        }
+        this.musicLoaded = true;
+      }
+
+      SoundPlayer.play();
+      SoundPlayer.setNumberOfLoops(-1); // Бесконечный цикл
+      SoundPlayer.setVolume(0.3); // 30% громкости
+      
+      this.isMusicPlaying = true;
+      console.log('Background music started');
+    } catch (error) {
+      console.log('Error playing background music:', error);
+    }
+  }
+
+  pauseBackgroundMusic() {
+    if (!this.isMusicPlaying) return;
+
+    try {
+      SoundPlayer.pause();
+      this.isMusicPlaying = false;
+      console.log('Background music paused');
+    } catch (error) {
+      console.log('Error pausing background music:', error);
+    }
+  }
+
+  resumeBackgroundMusic() {
+    if (!this.musicEnabled || this.isMusicPlaying) return;
+
+    try {
+      SoundPlayer.resume();
+      this.isMusicPlaying = true;
+      console.log('Background music resumed');
+    } catch (error) {
+      console.log('Error resuming background music:', error);
+    }
+  }
+
+  stopBackgroundMusic() {
+    try {
+      SoundPlayer.stop();
+      this.isMusicPlaying = false;
+      console.log('Background music stopped');
+    } catch (error) {
+      console.log('Error stopping background music:', error);
+    }
   }
 
   private playSound(soundKey: string, volume: number = 1.0): boolean {
@@ -85,21 +157,21 @@ export class SimpleAudio {
       });
       return true;
     } catch (error) {
+      console.log(`Error playing sound ${soundKey}:`, error);
       return false;
     }
   }
 
   playClick() {
-    this.playSound('clickSound', 0.7);
+    const soundPlayed = this.playSound('clickSound', 0.7);
     
-    // Вибрация только если включена в настройках
-    if (this.shouldVibrate()) {
-      Vibration.vibrate(10);
+    if (this.vibrationEnabled && Platform.OS !== 'web') {
+      Vibration.vibrate(soundPlayed ? 10 : 50);
     }
   }
 
   playBlockPlace(perfect: boolean = false) {
-    this.playSound('placeSound', 0.8);
+    const soundPlayed = this.playSound('placeSound', 0.8);
     
     if (perfect) {
       setTimeout(() => {
@@ -107,12 +179,11 @@ export class SimpleAudio {
       }, 100);
     }
     
-    // Вибрация с проверкой настроек
-    if (this.shouldVibrate()) {
+    if (this.vibrationEnabled && Platform.OS !== 'web') {
       if (perfect) {
         Vibration.vibrate([0, 100, 50, 100]);
       } else {
-        Vibration.vibrate(30);
+        Vibration.vibrate(soundPlayed ? 30 : 50);
       }
     }
   }
@@ -120,7 +191,7 @@ export class SimpleAudio {
   playSuccess() {
     this.playSound('successSound', 0.8);
     
-    if (this.shouldVibrate()) {
+    if (this.vibrationEnabled && Platform.OS !== 'web') {
       Vibration.vibrate([0, 100, 50, 100, 50, 100]);
     }
   }
@@ -128,7 +199,7 @@ export class SimpleAudio {
   playGameOver() {
     this.playSound('gameOverSound', 1.0);
     
-    if (this.shouldVibrate()) {
+    if (this.vibrationEnabled && Platform.OS !== 'web') {
       Vibration.vibrate([0, 500, 200, 500]);
     }
   }
@@ -136,12 +207,16 @@ export class SimpleAudio {
   playFail() {
     this.playSound('gameOverSound', 0.5);
     
-    if (this.shouldVibrate()) {
+    if (this.vibrationEnabled && Platform.OS !== 'web') {
       Vibration.vibrate([0, 300, 100, 300]);
     }
   }
 
   dispose() {
+    // Останавливаем музыку
+    this.stopBackgroundMusic();
+    
+    // Очищаем звуковые эффекты
     Object.values(this.sounds).forEach(sound => {
       if (sound) {
         sound.stop();
