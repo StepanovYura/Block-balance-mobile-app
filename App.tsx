@@ -130,14 +130,11 @@ const App = () => {
   };
 
 
-  // Загрузка рекорда из хранилища
+  // Загрузка рекорда из хранилища - УБИРАЕМ дублирование
   const loadHighScore = async () => {
     const savedScore = await Storage.getHighScore();
     setHighScore(savedScore);
-    setGameState(prevState => ({
-      ...prevState,
-      highScore: savedScore,
-    }));
+    // НЕ обновляем gameState.highScore здесь - GameLogic будет использовать свою копию
   };
 
   // Загрузка настроек из хранилища
@@ -191,10 +188,9 @@ const App = () => {
     if (score > highScore) {
       setHighScore(score);
       await Storage.saveHighScore(score);
-      setGameState(prevState => ({
-        ...prevState,
-        highScore: score,
-      }));
+      // Обновляем GameLogic
+      const currentState = gameLogic.getState();
+      gameLogic.setState({ ...currentState, highScore: score });
     }
   };
 
@@ -257,6 +253,9 @@ const App = () => {
 
     SimpleAudio.playClick();
 
+    // Сбрасываем игровую логику полностью
+    gameLogic.resetGame(); // Добавляем полный сброс
+
     const newState = gameLogic.startGame();
     setGameState(newState);
     startGameLoop(); // Запускаем игровой цикл заново
@@ -268,6 +267,10 @@ const App = () => {
       clearInterval(gameLoopRef.current);
       gameLoopRef.current = null;
     }
+
+    // Сбрасываем игровую логику полностью
+    gameLogic.resetGame(); // Добавляем полный сброс
+
     const resetState = gameLogic.getState();
     setGameState(resetState);
     setActiveScreen('main');

@@ -24,6 +24,7 @@ export interface GameState {
   speedMultiplier: number; // Множитель скорости
   streak: number; // Серия идеальных попаданий
   lastBlockWidth: number; // Ширина последнего блока
+  towerOffset?: number; // Добавляем необязательное поле для смещения
 }
 
 // Конфигурация игры

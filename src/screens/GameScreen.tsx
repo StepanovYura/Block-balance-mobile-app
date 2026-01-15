@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scoreLabel: {
+    paddingTop: 10,
     fontSize: 14,
     color: '#7f8c8d',
     marginBottom: 5,
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     color: '#3498db',
   },
   highScoreContainer: {
+    paddingTop: 10,
     alignItems: 'center',
     flex: 1,
   },
