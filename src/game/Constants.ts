@@ -27,7 +27,7 @@ export const COLORS = {
 
 // Тексты игры
 export const GAME_TEXT = {
-  gameTitle: 'BLOCK TOWER', // Название игры
+  gameTitle: 'BLOCK BALANCE', // Название игры
   startButton: 'СТАРТ', // Текст кнопки старта
   restartButton: 'ЗАНОВО', // Текст кнопки рестарта
   highScore: 'РЕКОРД', // Заголовок рекорда

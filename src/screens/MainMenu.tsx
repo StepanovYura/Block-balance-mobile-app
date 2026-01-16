@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     marginTop: 40, // Отступ сверху для аватара
   },
   title: {
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: 'bold',
     color: '#2c3e50',
     marginBottom: 10,

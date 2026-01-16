@@ -79,7 +79,7 @@ android {
 
     namespace "com.blockbalancenew"
     defaultConfig {
-        applicationId "com.blockbalancenew"
+        applicationId "com.yourcompany.blockbalance"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -103,6 +103,12 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "BlockBalance_${variant.versionName}.apk"
         }
     }
 }
