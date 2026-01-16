@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import {Animated, View, StyleSheet} from 'react-native';
 import {Block as BlockType} from '../types/game.types';
 
 // Пропсы для компонента блока
@@ -9,12 +9,54 @@ interface BlockProps {
 }
 
 const Block: React.FC<BlockProps> = ({block, isCurrent = false}) => {
+  const fallAnim = useRef(new Animated.Value(0)).current;
+  
+ useEffect(() => {
+    // Если блок только что был установлен и должен анимироваться
+    if (block.shouldAnimate) {
+      // Устанавливаем начальную позицию (выше фактической)
+      fallAnim.setValue(-200);
+      
+      // Запускаем анимацию падения
+      Animated.timing(fallAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [block.shouldAnimate]);
+
   // Определяем цвет рамки в зависимости от типа попадания
   const borderColor = block.perfectHit ? '#2ecc71' : 'transparent';
   const borderWidth = block.perfectHit ? 4 : 0;
 
   return (
-    <View
+    // <View
+    //   style={[
+    //     styles.block,
+    //     {
+    //       width: block.width,
+    //       height: block.height,
+    //       backgroundColor: block.color,
+    //       left: block.x,
+    //       top: block.y,
+    //       borderColor,
+    //       borderWidth,
+    //       opacity: isCurrent ? 0.9 : 1, // Немного прозрачный текущий блок
+    //     },
+    //   ]}>
+    //   {/* Эффект свечения для текущего блока */}
+    //   {isCurrent && <View style={styles.glowEffect} />}
+      
+    //   {/* Бейдж для идеального попадания */}
+    //   {block.perfectHit && (
+    //     <View style={styles.perfectBadge}>
+    //       <View style={styles.perfectInner} />
+    //     </View>
+    //   )}
+    // </View>
+
+    <Animated.View
       style={[
         styles.block,
         {
@@ -25,7 +67,11 @@ const Block: React.FC<BlockProps> = ({block, isCurrent = false}) => {
           top: block.y,
           borderColor,
           borderWidth,
-          opacity: isCurrent ? 0.9 : 1, // Немного прозрачный текущий блок
+          opacity: isCurrent ? 0.9 : 1,
+          transform: [
+            // Применяем анимацию только если флаг установлен
+            { translateY: block.shouldAnimate ? fallAnim : 0 }
+          ],
         },
       ]}>
       {/* Эффект свечения для текущего блока */}
@@ -37,7 +83,7 @@ const Block: React.FC<BlockProps> = ({block, isCurrent = false}) => {
           <View style={styles.perfectInner} />
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 

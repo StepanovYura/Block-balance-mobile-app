@@ -10,6 +10,7 @@ export interface Block {
   isMoving: boolean;
   direction: 'left' | 'right';
   perfectHit: boolean; // Флаг идеального попадания
+  shouldAnimate?: boolean;
 }
 
 // Состояние игры

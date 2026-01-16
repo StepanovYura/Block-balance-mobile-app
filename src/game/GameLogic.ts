@@ -167,6 +167,7 @@ export class GameLogic {
           y: lastBlock.y - this.config.blockHeight,
           isMoving: false,
           perfectHit: isPerfect,
+          shouldAnimate: true,
       };
 
       // Расчет увеличения счета
@@ -222,6 +223,11 @@ export class GameLogic {
       };
 
       this.isProcessingPlaceBlock = false;
+
+      setTimeout(() => {
+        // Через небольшой промежуток убираем флаг анимации
+        this.state.tower[this.state.tower.length - 1].shouldAnimate = false;
+      }, 300);
       return this.state;
   }
   // // Установка блока на башню

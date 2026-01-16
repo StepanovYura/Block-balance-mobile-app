@@ -32,7 +32,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       {/* Заголовок и подзаголовок игры */}
       <View style={styles.header}>
         <Text style={styles.title}>{GAME_TEXT.gameTitle}</Text>
-        <Text style={styles.subtitle}>Балансируй башню!</Text>
+        <Text style={styles.subtitle}>Постройте башню и не уроните блоки!</Text>
       </View>
 
       {/* Отображение рекорда в правом верхнем углу */}
