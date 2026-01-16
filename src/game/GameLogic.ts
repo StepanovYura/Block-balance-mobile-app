@@ -39,7 +39,7 @@ export class GameLogic {
       height: this.config.blockHeight,
       color: COLORS.blockColors[0],
       x: (this.config.screenWidth - this.config.initialBlockWidth) / 2,
-      y: this.config.screenHeight - this.config.blockHeight * 4 - this.towerOffset, // Учитываем смещение
+      y: this.config.screenHeight - this.config.blockHeight * 5 - this.towerOffset, // Учитываем смещение
       speed: 0,
       isMoving: false,
       direction: 'right',
@@ -191,7 +191,7 @@ export class GameLogic {
 
       // Проверяем, нужно ли опустить башню
       const blocksInTower = this.state.tower.length + 1;
-      const shouldLowerTower = blocksInTower >= 4 && blocksInTower % 4 === 0;
+      const shouldLowerTower = blocksInTower >= 8 && blocksInTower % 3 === 0;
 
       // ДОБАВЛЯЕМ новый блок в башню
       let newTower = [...this.state.tower, newBlock];

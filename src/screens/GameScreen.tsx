@@ -6,12 +6,16 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import Block from '../components/Block';
 import {GameState} from '../types/game.types';
 import {GAME_TEXT, COLORS} from '../game/Constants';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
+
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight || 24;
 
 // Пропсы для игрового экрана
 interface GameScreenProps {
@@ -31,6 +35,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Статус бар для Android */}
+      {Platform.OS === 'android' && <View style={styles.statusBar} />}
+
       {/* Верхняя панель с информацией о счете и рекорде */}
       <View style={styles.topBar}>
         <View style={styles.scoreContainer}>
@@ -63,7 +70,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         {/* Инструкция для новых игроков */}
         {gameState.tower.length === 1 && (
           <View style={styles.instructionOverlay}>
-            <Text style={styles.instructionText}>Нажимайте чтобы поставить блок!</Text>
+            <Text style={styles.instructionText}>Нажимайте, когда блок над башней, чтобы его поставить!</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -89,11 +96,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  statusBar: {
+    height: StatusBar.currentHeight || 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 10,
+    paddingTop: Platform.OS === 'android' ? 10 : 15,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderBottomWidth: 2,
     borderBottomColor: '#ecf0f1',

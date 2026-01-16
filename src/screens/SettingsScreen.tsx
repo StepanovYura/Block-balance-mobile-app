@@ -138,7 +138,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
       {/* Заголовок экрана */}
       <View style={styles.header}>
         <Text style={styles.title}>НАСТРОЙКИ</Text>
-        <Text style={styles.subtitle}>Настройте игру под себя</Text>
       </View>
 
       {/* Основной контент с прокруткой */}
@@ -237,8 +236,8 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 30,
-    paddingBottom: 20,
+    paddingTop: 50,
+    paddingBottom: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderBottomWidth: 2,
     borderBottomColor: '#ecf0f1',

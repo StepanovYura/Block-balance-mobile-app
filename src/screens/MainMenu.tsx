@@ -45,13 +45,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
       <TouchableOpacity style={styles.startButton} onPress={onStartGame}>
         <Text style={styles.startButtonText}>{GAME_TEXT.startButton}</Text>
       </TouchableOpacity>
-
-      {/* Инструкция по игре */}
-      <View style={styles.instructions}>
-        <Text style={styles.instructionText}>• Нажимайте когда блок над башней</Text>
-        <Text style={styles.instructionText}>• Блоки ускоряются со временем</Text>
-        <Text style={styles.instructionText}>• Не уроните башню!</Text>
-      </View>
     </View>
   );
 };

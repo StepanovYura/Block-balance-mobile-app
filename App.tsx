@@ -24,7 +24,7 @@ const App = () => {
     musicEnabled: true,
     vibrationEnabled: true,
   });
-   const [permissionsRequested, setPermissionsRequested] = useState(false);
+  const [permissionsRequested, setPermissionsRequested] = useState(false);
   
   // Референс для игрового цикла
   const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
