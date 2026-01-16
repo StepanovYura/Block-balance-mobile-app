@@ -6,6 +6,7 @@ export class GameLogic {
   private state: GameState;
   private config = GAME_CONFIG;
   private towerOffset: number = 0; // Добавляем смещение башни
+  private isProcessingPlaceBlock: boolean = false;
   
   setState(newState: Partial<GameState>): void {
   this.state = { ...this.state, ...newState };
@@ -115,7 +116,14 @@ export class GameLogic {
 
   // Установка блока на башню
   placeBlock(): GameState {
+      if (this.isProcessingPlaceBlock) {
+        console.log('Block placement already in progress, skipping...');
+        return this.state;
+      }
+
       if (!this.state.currentBlock || !this.state.isPlaying) return this.state;
+
+      this.isProcessingPlaceBlock = true;
 
       const lastBlock = this.state.tower[this.state.tower.length - 1];
       const currentBlock = this.state.currentBlock;
@@ -127,14 +135,26 @@ export class GameLogic {
           currentBlock.x + currentBlock.width
       );
       const overlapWidth = overlapEnd - overlapStart;
-      this.state.lastBlockWidth = overlapWidth;
 
       // Проверка на проигрыш
       if (overlapWidth <= this.config.minBlockWidth) {
-          this.state.isGameOver = true;
-          this.state.isPlaying = false;
-          return this.state;
+          // this.state.isGameOver = true;
+          // this.state.isPlaying = false;
+          // return this.state;
+
+          const gameOverState = {
+            ...this.state,
+            isGameOver: true,
+            isPlaying: false,
+            currentBlock: null,
+          };
+          
+          this.state = gameOverState;
+          this.isProcessingPlaceBlock = false; // Сбрасываем флаг
+          return gameOverState;
       }
+
+      this.state.lastBlockWidth = overlapWidth;
 
       // Проверка на идеальное попадание
       const isPerfect = Math.abs(lastBlock.x - currentBlock.x) < this.config.perfectThreshold;
@@ -201,6 +221,7 @@ export class GameLogic {
           lastBlockWidth: overlapWidth, // Важно: обновляем ширину
       };
 
+      this.isProcessingPlaceBlock = false;
       return this.state;
   }
   // // Установка блока на башню
@@ -310,6 +331,8 @@ export class GameLogic {
       streak: 0,
       lastBlockWidth: this.config.initialBlockWidth,
     };
+
+    this.isProcessingPlaceBlock = false;
     return this.state;
   }
 }

@@ -246,9 +246,17 @@ const App = () => {
     SimpleAudio.playBackgroundMusic();
   };
 
+  const isProcessingPlaceBlock = useRef(false);
+
   // Установка блока на башню
   const handlePlaceBlock = () => {
+    if (isProcessingPlaceBlock.current) {
+      return;
+    }
+
     if (!gameState.isPlaying || gameState.isGameOver) return;
+
+    isProcessingPlaceBlock.current = true;
 
     const newState = gameLogic.placeBlock();
     setGameState(newState);
@@ -268,6 +276,10 @@ const App = () => {
       gameLoopRef.current = null;
       SimpleAudio.playGameOver();
     }
+
+    setTimeout(() => {
+      isProcessingPlaceBlock.current = false;
+    }, 100);
   };
 
   // Перезапуск игры
@@ -316,6 +328,12 @@ const App = () => {
     if (screen === 'game' && !gameState.isPlaying) {
       handleStartGame(); // Автоматически начинаем игру
     } else {
+        if (activeScreen === 'game' && screen !== 'game' && gameState.isGameOver) {
+          // Полностью сбрасываем игру при уходе во время поражения
+          gameLogic.resetGame();
+          setGameState(gameLogic.getState());
+        }
+
         if (activeScreen === 'game' && screen !== 'game') {
           SimpleAudio.pauseBackgroundMusic();
         }
